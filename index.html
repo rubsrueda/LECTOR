@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LECTOR</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section class="card">
+        <h1>LECTOR</h1>
+        <p class="intro">Pega un texto, pulsa el botón y deja que el navegador lo lea por ti.</p>
+
+        <label class="field" for="text-input">
+          <span>Texto a leer</span>
+          <textarea
+            id="text-input"
+            name="text"
+            rows="10"
+            placeholder="Escribe o pega aquí el texto que quieras escuchar"
+          ></textarea>
+        </label>
+
+        <div class="actions">
+          <button id="read-button" type="button" disabled>Leer en voz alta</button>
+          <button id="stop-button" type="button" class="secondary" disabled>Detener</button>
+        </div>
+
+        <p id="status" class="status" role="status" aria-live="polite">
+          Introduce un texto para comenzar.
+        </p>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

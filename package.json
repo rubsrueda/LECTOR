@@ -1,0 +1,18 @@
+{
+  "name": "lector",
+  "version": "1.0.0",
+  "description": "Pequeña app para pegar un texto y leerlo",
+  "scripts": {
+    "start": "python3 -m http.server 4173"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rubsrueda/LECTOR.git"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rubsrueda/LECTOR/issues"
+  },
+  "homepage": "https://github.com/rubsrueda/LECTOR#readme",
+  "private": true
+}
