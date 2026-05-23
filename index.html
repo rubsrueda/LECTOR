@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lector de Texto a Voz Avanzado</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .instruccion {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 180px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: none;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        select {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            gap: 5px;
+        }
+
+        .slider-container label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        /* Nuevos estilos para los botones en cuadrícula */
+        .botones-reproduccion {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        button {
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.3s, transform 0.1s;
+        }
+
+        button:hover { opacity: 0.9; }
+        button:active { transform: scale(0.96); }
+
+        /* Colores para cada botón */
+        .btn-play { background-color: #007bff; } /* Azul */
+        .btn-pause { background-color: #ffc107; color: #333; } /* Amarillo */
+        .btn-resume { background-color: #28a745; } /* Verde */
+        .btn-stop { background-color: #dc3545; } /* Rojo */
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Lector de Texto 🗣️</h1>
+        <p class="instruccion">Haz clic en cualquier parte del texto para leer desde ahí.</p>
+        
+        <textarea id="texto" placeholder="Escribe o pega aquí tu texto..."></textarea>
+        
+        <div class="controls">
+            <select id="voces"></select>
+            
+            <div class="slider-container">
+                <label for="velocidad">Velocidad: <span id="valorVelocidad">1.2</span>x</label>
+                <input type="range" id="velocidad" min="0.5" max="2" value="1.2" step="0.1">
+            </div>
+
+            <!-- Botones de control -->
+            <div class="botones-reproduccion">
+                <button id="btnLeer" class="btn-play">▶️ Escuchar</button>
+                <button id="btnPausar" class="btn-pause">⏸️ Pausar</button>
+                <button id="btnReanudar" class="btn-resume">⏯️ Reanudar</button>
+                <button id="btnDetener" class="btn-stop">⏹️ Detener</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const textarea = document.getElementById('texto');
+        const selectorVoces = document.getElementById('voces');
+        const inputVelocidad = document.getElementById('velocidad');
+        const valorVelocidad = document.getElementById('valorVelocidad');
+        
+        // Botones
+        const btnLeer = document.getElementById('btnLeer');
+        const btnPausar = document.getElementById('btnPausar');
+        const btnReanudar = document.getElementById('btnReanudar');
+        const btnDetener = document.getElementById('btnDetener');
+
+        const sintesis = window.speechSynthesis;
+        let vocesDisponibles = [];
+        let mensajeActual = null; // Guardamos el mensaje actual para evitar errores en pausa/reanudación
+
+        // Actualizar número del slider
+        inputVelocidad.addEventListener('input', () => {
+            valorVelocidad.textContent = inputVelocidad.value;
+        });
+
+        // Cargar voces
+        function cargarVoces() {
+            vocesDisponibles = sintesis.getVoices();
+            selectorVoces.innerHTML = ''; 
+            vocesDisponibles.forEach((voz) => {
+                const opcion = document.createElement('option');
+                opcion.textContent = `${voz.name} (${voz.lang})`;
+                opcion.value = voz.name;
+                selectorVoces.appendChild(opcion);
+            });
+        }
+        sintesis.onvoiceschanged = cargarVoces;
+
+        // BOTÓN LEER (Con lógica de cursor)
+        btnLeer.addEventListener('click', () => {
+            sintesis.cancel(); // Detenemos si hay algo leyendo
+
+            // Detectamos dónde está el cursor en el texto
+            let inicio = textarea.selectionStart;
+            let fin = textarea.selectionEnd;
+            let textoALeer = "";
+
+            if (inicio !== fin) {
+                // Si el usuario seleccionó/pintó una parte del texto, leemos solo eso
+                textoALeer = textarea.value.substring(inicio, fin);
+            } else {
+                // Si no hay texto seleccionado, comprobamos dónde está el cursor
+                if (inicio === textarea.value.length) {
+                    // Si el cursor está justo al final del texto, leemos todo desde el principio
+                    textoALeer = textarea.value;
+                } else {
+                    // Si el cursor está en medio, leemos desde ahí hasta el final
+                    textoALeer = textarea.value.substring(inicio);
+                }
+            }
+
+            if (textoALeer.trim() !== '') {
+                mensajeActual = new SpeechSynthesisUtterance(textoALeer);
+
+                // Configurar voz y velocidad
+                const vozSeleccionada = vocesDisponibles.find(v => v.name === selectorVoces.value);
+                if (vozSeleccionada) mensajeActual.voice = vozSeleccionada;
+                mensajeActual.rate = parseFloat(inputVelocidad.value);
+
+                sintesis.speak(mensajeActual);
+            } else {
+                alert("Por favor, escribe un texto primero.");
+            }
+        });
+
+        // BOTÓN PAUSAR
+        btnPausar.addEventListener('click', () => {
+            if (sintesis.speaking && !sintesis.paused) {
+                sintesis.pause();
+            }
+        });
+
+        // BOTÓN REANUDAR
+        btnReanudar.addEventListener('click', () => {
+            if (sintesis.paused) {
+                sintesis.resume();
+            }
+        });
+
+        // BOTÓN DETENER
+        btnDetener.addEventListener('click', () => {
+            sintesis.cancel();
+        });
+    </script>
+
+</body>
+</html>
