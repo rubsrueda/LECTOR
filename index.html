@@ -2,47 +2,203 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Lector de Texto a Voz Seguro</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-        .container { background-color: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); width: 100%; max-width: 500px; text-align: center; }
-        h1 { color: #333; font-size: 24px; margin-bottom: 5px; }
-        .instruccion { color: #d9534f; font-weight: bold; font-size: 13px; margin-bottom: 20px; }
-        textarea { width: 100%; height: 150px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; resize: none; margin-bottom: 15px; line-height: 1.5; }
-        textarea:focus { outline: none; border-color: #007bff; }
-        .controls { display: flex; flex-direction: column; gap: 15px; }
-        select { padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; background-color: #f8f9fa; }
-        .slider-container { display: flex; flex-direction: column; text-align: left; gap: 5px; }
-        .slider-container label { font-size: 14px; font-weight: bold; color: #555; }
+        :root {
+            --bg: #f0f2f5;
+            --card: #ffffff;
+            --text: #222;
+            --muted: #666;
+            --border: #dcdfe4;
+            --primary: #007bff;
+            --warning: #ffc107;
+            --success: #28a745;
+            --danger: #dc3545;
+            --surface: #f8f9fa;
+            --shadow: 0 6px 20px rgba(0,0,0,0.08);
+        }
+        body {
+            background-color: var(--bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text);
+        }
+        .container {
+            background-color: var(--card);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 720px;
+        }
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+        .instruccion {
+            color: #b54708;
+            font-weight: 700;
+            font-size: 13px;
+            margin-bottom: 18px;
+            text-align: center;
+        }
+        textarea {
+            width: 100%;
+            height: 260px;
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 16px;
+            resize: vertical;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+        textarea:focus, select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.12);
+        }
+        .controls {
+            display: grid;
+            gap: 14px;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        select, input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            font-size: 15px;
+            background-color: var(--surface);
+        }
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            gap: 6px;
+        }
+        .slider-container label, .field-label {
+            font-size: 14px;
+            font-weight: 700;
+            color: #555;
+        }
         input[type="range"] { width: 100%; cursor: pointer; }
-        .botones-reproduccion { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button { color: white; border: none; padding: 15px; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; transition: opacity 0.3s; }
-        button:hover { opacity: 0.9; }
-        button:active { transform: scale(0.96); }
-        .btn-play { background-color: #007bff; }
-        .btn-pause { background-color: #ffc107; color: #333; }
-        .btn-resume { background-color: #28a745; }
-        .btn-stop { background-color: #dc3545; }
+        .botones-reproduccion {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        button {
+            color: white;
+            border: none;
+            padding: 14px 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.08s ease, opacity 0.2s ease, background-color 0.2s ease;
+        }
+        button:hover { opacity: 0.95; }
+        button:active { transform: scale(0.98); }
+        button:disabled { opacity: 0.55; cursor: not-allowed; }
+        .btn-play { background-color: var(--primary); }
+        .btn-pause { background-color: var(--warning); color: #333; }
+        .btn-resume { background-color: var(--success); }
+        .btn-stop { background-color: var(--danger); }
+        .status {
+            margin-top: 18px;
+            padding: 16px;
+            border-radius: 12px;
+            background: var(--surface);
+            border: 1px solid #e4e7eb;
+        }
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px 14px;
+            font-size: 14px;
+        }
+        .status-grid strong { color: #222; }
+        .progress {
+            margin-top: 12px;
+            height: 12px;
+            width: 100%;
+            background: #e9ecef;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), #55a3ff);
+            transition: width 0.2s linear;
+        }
+        .small {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 8px;
+            line-height: 1.45;
+            word-break: break-word;
+        }
+        .actions-secondary {
+            margin-top: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .ghost-btn {
+            background: #eef4ff;
+            color: #1047a9;
+            border: 1px solid #cfe0ff;
+        }
+        .hint-list {
+            margin-top: 12px;
+            padding-left: 18px;
+            color: #555;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        @media (max-width: 700px) {
+            .container { padding: 18px; }
+            .grid-2, .botones-reproduccion, .status-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
-
     <div class="container">
         <h1>Lector de Texto 🗣️</h1>
-        <p class="instruccion">Escribe un texto, elige una voz y presiona Escuchar.</p>
-        
+        <p class="instruccion">Optimizado para textos muy largos. Divide el contenido en bloques, guarda posición y sigue leyendo aunque una parte falle.</p>
+
         <textarea id="texto" placeholder="Escribe o pega aquí tu texto..."></textarea>
-        
+
         <div class="controls">
-            <select id="voces">
-                <option value="">Cargando voces del sistema...</option>
-            </select>
-            
+            <div class="grid-2">
+                <div>
+                    <label class="field-label" for="voces">Voz</label>
+                    <select id="voces">
+                        <option value="">Cargando voces del sistema...</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="field-label" for="tamanoFragmento">Tamaño de fragmento</label>
+                    <input type="number" id="tamanoFragmento" min="120" max="450" step="10" value="220">
+                </div>
+            </div>
+
             <div class="slider-container">
                 <label for="velocidad">Velocidad: <span id="valorVelocidad">1.0</span>x</label>
-                <input type="range" id="velocidad" min="0.5" max="2" value="1.0" step="0.1">
+                <input type="range" id="velocidad" min="0.6" max="2" value="1.0" step="0.1">
             </div>
 
             <div class="botones-reproduccion">
@@ -52,50 +208,119 @@
                 <button id="btnDetener" class="btn-stop">⏹️ Detener</button>
             </div>
         </div>
+
+        <div class="status">
+            <div class="status-grid">
+                <div><strong>Estado:</strong> <span id="estadoLectura">En espera</span></div>
+                <div><strong>Fragmentos:</strong> <span id="progresoTexto">0 / 0</span></div>
+                <div><strong>Palabras aprox.:</strong> <span id="contadorPalabras">0</span></div>
+                <div><strong>Tiempo aprox.:</strong> <span id="tiempoEstimado">0 min</span></div>
+            </div>
+
+            <div class="progress">
+                <div id="barraProgreso" class="progress-bar"></div>
+            </div>
+
+            <div id="previewFragmento" class="small">Sin lectura activa.</div>
+            <div id="detalleTecnico" class="small">Listo.</div>
+
+            <div class="actions-secondary">
+                <button id="btnGuardarPosicion" class="ghost-btn" type="button">💾 Guardar posición</button>
+                <button id="btnContinuarPosicion" class="ghost-btn" type="button">📍 Continuar desde guardado</button>
+                <button id="btnLimpiarGuardado" class="ghost-btn" type="button">🧹 Borrar guardado</button>
+            </div>
+
+            <ul class="hint-list">
+                <li>Si seleccionas texto, leerá solo esa selección.</li>
+                <li>Si no seleccionas nada, leerá desde el cursor hasta el final.</li>
+                <li>Si el cursor está al final, leerá todo el texto.</li>
+                <li>Tu posición puede guardarse para retomar el paseo más tarde.</li>
+            </ul>
+        </div>
     </div>
 
     <script>
+        const STORAGE_KEY = 'lector_tts_state_v2';
         const textarea = document.getElementById('texto');
         const selectorVoces = document.getElementById('voces');
         const inputVelocidad = document.getElementById('velocidad');
         const valorVelocidad = document.getElementById('valorVelocidad');
-        
+        const inputTamanoFragmento = document.getElementById('tamanoFragmento');
+
         const btnLeer = document.getElementById('btnLeer');
         const btnPausar = document.getElementById('btnPausar');
         const btnReanudar = document.getElementById('btnReanudar');
         const btnDetener = document.getElementById('btnDetener');
+        const btnGuardarPosicion = document.getElementById('btnGuardarPosicion');
+        const btnContinuarPosicion = document.getElementById('btnContinuarPosicion');
+        const btnLimpiarGuardado = document.getElementById('btnLimpiarGuardado');
+
+        const estadoLectura = document.getElementById('estadoLectura');
+        const progresoTexto = document.getElementById('progresoTexto');
+        const barraProgreso = document.getElementById('barraProgreso');
+        const previewFragmento = document.getElementById('previewFragmento');
+        const detalleTecnico = document.getElementById('detalleTecnico');
+        const contadorPalabras = document.getElementById('contadorPalabras');
+        const tiempoEstimado = document.getElementById('tiempoEstimado');
 
         let vocesDisponibles = [];
-        window.mensajeActual = null; // Variable global
-
-        // 1. Despertar el motor de audio en móviles con el primer toque en la pantalla
         let audioDesbloqueado = false;
-        document.body.addEventListener('touchstart', function() {
-            if (!audioDesbloqueado) {
-                const despertar = new SpeechSynthesisUtterance('');
-                despertar.volume = 0; // Silencioso
-                window.speechSynthesis.speak(despertar);
-                audioDesbloqueado = true;
-            }
-        }, { once: true });
+        let colaFragmentos = [];
+        let indiceActual = 0;
+        let leyendo = false;
+        let pausado = false;
+        let reproduccionId = 0;
+        let textoBaseActual = '';
+        let palabrasTotalesActuales = 0;
+        let keepAliveTimer = null;
+        let ultimoInicioExitoso = 0;
+        let offsetInicioActual = 0;
+        let erroresConsecutivos = 0;
 
-        // Actualizar número de velocidad
+        function desbloquearAudio() {
+            if (audioDesbloqueado) return;
+            try {
+                const despertar = new SpeechSynthesisUtterance(' ');
+                despertar.volume = 0;
+                window.speechSynthesis.speak(despertar);
+                window.speechSynthesis.cancel();
+            } catch (e) {}
+            audioDesbloqueado = true;
+        }
+
+        document.body.addEventListener('touchstart', desbloquearAudio, { once: true });
+        document.body.addEventListener('click', desbloquearAudio, { once: true });
+
         inputVelocidad.addEventListener('input', () => {
             valorVelocidad.textContent = inputVelocidad.value;
+            actualizarResumenTexto();
         });
 
-        // Cargar voces disponibles
+        inputTamanoFragmento.addEventListener('input', () => {
+            const valor = Math.max(120, Math.min(450, parseInt(inputTamanoFragmento.value || '220', 10)));
+            inputTamanoFragmento.value = valor;
+            actualizarResumenTexto();
+        });
+
+        textarea.addEventListener('input', actualizarResumenTexto);
+
         function cargarVoces() {
             vocesDisponibles = window.speechSynthesis.getVoices();
-            
             if (vocesDisponibles.length > 0) {
-                selectorVoces.innerHTML = ''; 
-                vocesDisponibles.forEach((voz) => {
+                selectorVoces.innerHTML = '';
+                const preferidas = vocesDisponibles.slice().sort((a, b) => {
+                    const aEs = a.lang.toLowerCase().startsWith('es') ? 0 : 1;
+                    const bEs = b.lang.toLowerCase().startsWith('es') ? 0 : 1;
+                    return aEs - bEs || a.name.localeCompare(b.name);
+                });
+                preferidas.forEach((voz) => {
                     const opcion = document.createElement('option');
                     opcion.textContent = `${voz.name} (${voz.lang})`;
                     opcion.value = voz.name;
                     selectorVoces.appendChild(opcion);
                 });
+                const vozES = preferidas.find(v => v.lang.toLowerCase().startsWith('es'));
+                if (vozES) selectorVoces.value = vozES.name;
             } else {
                 selectorVoces.innerHTML = '<option value="">Voz predeterminada</option>';
             }
@@ -106,64 +331,390 @@
             window.speechSynthesis.onvoiceschanged = cargarVoces;
         }
 
-        // BOTÓN LEER
-        btnLeer.addEventListener('click', () => {
-            // NOTA: Quité el "sintesis.cancel()" de aquí porque en Safari eso bloquea el audio.
-            // Si quieres reiniciar la lectura, primero dale al botón rojo de "Detener".
+        function normalizarTexto(texto) {
+            return texto
+                .replace(/\r\n/g, '\n')
+                .replace(/\t/g, ' ')
+                .replace(/[ ]{2,}/g, ' ')
+                .replace(/\u00A0/g, ' ')
+                .replace(/\n{3,}/g, '\n\n')
+                .trim();
+        }
 
-            let inicio = textarea.selectionStart;
-            let fin = textarea.selectionEnd;
-            let textoALeer = "";
+        function contarPalabras(texto) {
+            const limpio = normalizarTexto(texto);
+            if (!limpio) return 0;
+            return limpio.split(/\s+/).filter(Boolean).length;
+        }
+
+        function estimarMinutos(palabras, velocidad) {
+            const ppmBase = 170;
+            const ppm = Math.max(90, ppmBase * velocidad);
+            return Math.ceil((palabras / ppm) || 0);
+        }
+
+        function dividirTextoEnFragmentos(texto, maxLength = 220) {
+            const limpio = normalizarTexto(texto);
+            if (!limpio) return [];
+
+            const parrafos = limpio.split(/\n+/);
+            const fragmentos = [];
+
+            for (const parrafo of parrafos) {
+                const p = parrafo.trim();
+                if (!p) continue;
+
+                if (p.length <= maxLength) {
+                    fragmentos.push(p);
+                    continue;
+                }
+
+                const oraciones = p.match(/[^.!?¡¿;:]+[.!?¡¿;:]+|[^.!?¡¿;:]+$/g) || [p];
+                let actual = '';
+
+                for (const oracionRaw of oraciones) {
+                    const oracion = oracionRaw.trim();
+                    if (!oracion) continue;
+
+                    const candidata = (actual + ' ' + oracion).trim();
+                    if (candidata.length <= maxLength) {
+                        actual = candidata;
+                        continue;
+                    }
+
+                    if (actual) fragmentos.push(actual);
+
+                    if (oracion.length <= maxLength) {
+                        actual = oracion;
+                        continue;
+                    }
+
+                    const palabras = oracion.split(/\s+/);
+                    let subActual = '';
+
+                    for (const palabra of palabras) {
+                        const test = (subActual + ' ' + palabra).trim();
+                        if (test.length <= maxLength) {
+                            subActual = test;
+                        } else {
+                            if (subActual) fragmentos.push(subActual);
+                            if (palabra.length > maxLength) {
+                                for (let i = 0; i < palabra.length; i += maxLength) {
+                                    fragmentos.push(palabra.slice(i, i + maxLength));
+                                }
+                                subActual = '';
+                            } else {
+                                subActual = palabra;
+                            }
+                        }
+                    }
+
+                    actual = subActual;
+                }
+
+                if (actual) fragmentos.push(actual);
+            }
+
+            return fragmentos;
+        }
+
+        function seleccionarVoz(utterance) {
+            utterance.lang = 'es-ES';
+            const vozSeleccionada = vocesDisponibles.find(v => v.name === selectorVoces.value);
+            if (vozSeleccionada) {
+                utterance.voice = vozSeleccionada;
+                utterance.lang = vozSeleccionada.lang;
+            }
+            utterance.rate = parseFloat(inputVelocidad.value);
+            utterance.pitch = 1;
+            utterance.volume = 1;
+        }
+
+        function actualizarResumenTexto() {
+            const textoALeer = obtenerTextoALeer(false);
+            const palabras = contarPalabras(textoALeer);
+            contadorPalabras.textContent = palabras.toLocaleString('es-ES');
+            tiempoEstimado.textContent = `${estimarMinutos(palabras, parseFloat(inputVelocidad.value))} min`;
+        }
+
+        function actualizarUI() {
+            const total = colaFragmentos.length;
+            const progresoNumerico = total > 0 ? Math.min(indiceActual, total) : 0;
+            progresoTexto.textContent = `${progresoNumerico} / ${total}`;
+            const porcentaje = total > 0 ? (progresoNumerico / total) * 100 : 0;
+            barraProgreso.style.width = `${Math.min(100, porcentaje)}%`;
+
+            if ((leyendo || pausado) && colaFragmentos[indiceActual]) {
+                previewFragmento.textContent = colaFragmentos[indiceActual].slice(0, 220);
+            } else if (!colaFragmentos.length) {
+                previewFragmento.textContent = 'Sin lectura activa.';
+            }
+
+            btnPausar.disabled = !leyendo;
+            btnReanudar.disabled = (!pausado && !(colaFragmentos.length && !leyendo));
+            btnDetener.disabled = !(leyendo || pausado || colaFragmentos.length);
+        }
+
+        function limpiarKeepAlive() {
+            if (keepAliveTimer) {
+                clearInterval(keepAliveTimer);
+                keepAliveTimer = null;
+            }
+        }
+
+        function iniciarKeepAlive(idActual) {
+            limpiarKeepAlive();
+            keepAliveTimer = setInterval(() => {
+                if (idActual !== reproduccionId) return;
+                if (!leyendo || pausado) return;
+                const ahora = Date.now();
+                if (window.speechSynthesis.speaking) {
+                    ultimoInicioExitoso = ahora;
+                    return;
+                }
+                if (ahora - ultimoInicioExitoso > 3500 && indiceActual < colaFragmentos.length) {
+                    detalleTecnico.textContent = 'Se detectó una pausa inesperada. Intentando retomar automáticamente...';
+                    leerSiguiente(idActual, true);
+                }
+            }, 1500);
+        }
+
+        function detenerLectura(mensaje = 'Detenida') {
+            reproduccionId++;
+            leyendo = false;
+            pausado = false;
+            indiceActual = 0;
+            colaFragmentos = [];
+            textoBaseActual = '';
+            palabrasTotalesActuales = 0;
+            offsetInicioActual = 0;
+            erroresConsecutivos = 0;
+            limpiarKeepAlive();
+            try { window.speechSynthesis.cancel(); } catch (e) {}
+            estadoLectura.textContent = mensaje;
+            detalleTecnico.textContent = 'Lectura detenida y cola limpiada.';
+            actualizarUI();
+        }
+
+        function finalizarLectura() {
+            leyendo = false;
+            pausado = false;
+            limpiarKeepAlive();
+            estadoLectura.textContent = 'Lectura finalizada';
+            detalleTecnico.textContent = 'Se terminó de leer el texto completo.';
+            barraProgreso.style.width = '100%';
+            previewFragmento.textContent = 'Se terminó de leer el texto.';
+            actualizarUI();
+        }
+
+        function guardarPosicion() {
+            if (!textoBaseActual || !colaFragmentos.length) {
+                detalleTecnico.textContent = 'No hay una lectura activa o preparada para guardar.';
+                return;
+            }
+            const payload = {
+                texto: textoBaseActual,
+                indiceActual,
+                velocidad: inputVelocidad.value,
+                voz: selectorVoces.value,
+                tamanoFragmento: inputTamanoFragmento.value,
+                fecha: new Date().toISOString(),
+                offsetInicioActual
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+            detalleTecnico.textContent = `Posición guardada en el fragmento ${indiceActual + 1}.`;
+        }
+
+        function cargarPosicionGuardada() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function borrarPosicionGuardada() {
+            localStorage.removeItem(STORAGE_KEY);
+            detalleTecnico.textContent = 'Se borró la posición guardada.';
+        }
+
+        function obtenerTextoALeer(normalizar = true) {
+            const inicio = textarea.selectionStart;
+            const fin = textarea.selectionEnd;
+            let textoALeer = '';
+            let offsetInicio = 0;
 
             if (inicio !== fin) {
                 textoALeer = textarea.value.substring(inicio, fin);
+                offsetInicio = inicio;
+            } else if (inicio === textarea.value.length) {
+                textoALeer = textarea.value;
+                offsetInicio = 0;
             } else {
-                if (inicio === textarea.value.length) {
-                    textoALeer = textarea.value;
+                textoALeer = textarea.value.substring(inicio);
+                offsetInicio = inicio;
+            }
+
+            offsetInicioActual = offsetInicio;
+            return normalizar ? normalizarTexto(textoALeer) : textoALeer;
+        }
+
+        function prepararLecturaDesdeTexto(texto, indiceInicial = 0, opciones = {}) {
+            const limpio = normalizarTexto(texto);
+            if (!limpio) {
+                alert('Por favor, escribe un texto.');
+                return false;
+            }
+
+            const tam = Math.max(120, Math.min(450, parseInt(inputTamanoFragmento.value || '220', 10)));
+            colaFragmentos = dividirTextoEnFragmentos(limpio, tam);
+            textoBaseActual = limpio;
+            palabrasTotalesActuales = contarPalabras(limpio);
+            indiceActual = Math.max(0, Math.min(indiceInicial, colaFragmentos.length - 1));
+            leyendo = false;
+            pausado = false;
+            erroresConsecutivos = 0;
+            reproduccionId++;
+
+            if (!colaFragmentos.length) {
+                alert('No se pudo preparar el texto para la lectura.');
+                return false;
+            }
+
+            estadoLectura.textContent = opciones.mensajeEstado || 'Preparando lectura...';
+            detalleTecnico.textContent = `Texto preparado: ${palabrasTotalesActuales.toLocaleString('es-ES')} palabras en ${colaFragmentos.length} fragmentos.`;
+            actualizarUI();
+            return true;
+        }
+
+        function leerSiguiente(idActual, esRecuperacion = false) {
+            if (idActual !== reproduccionId) return;
+            if (!colaFragmentos.length || indiceActual >= colaFragmentos.length) {
+                finalizarLectura();
+                return;
+            }
+
+            try { window.speechSynthesis.cancel(); } catch (e) {}
+
+            const fragmento = colaFragmentos[indiceActual];
+            const utterance = new SpeechSynthesisUtterance(fragmento);
+            seleccionarVoz(utterance);
+
+            utterance.onstart = () => {
+                if (idActual !== reproduccionId) return;
+                leyendo = true;
+                pausado = false;
+                ultimoInicioExitoso = Date.now();
+                erroresConsecutivos = 0;
+                estadoLectura.textContent = esRecuperacion ? 'Retomando lectura...' : 'Leyendo...';
+                detalleTecnico.textContent = `Leyendo fragmento ${indiceActual + 1} de ${colaFragmentos.length}.`;
+                actualizarUI();
+                iniciarKeepAlive(idActual);
+            };
+
+            utterance.onend = () => {
+                if (idActual !== reproduccionId) return;
+                indiceActual++;
+                actualizarUI();
+                setTimeout(() => leerSiguiente(idActual), 80);
+            };
+
+            utterance.onerror = (event) => {
+                if (idActual !== reproduccionId) return;
+                erroresConsecutivos++;
+                detalleTecnico.textContent = `Error en fragmento ${indiceActual + 1}: ${event.error || 'desconocido'}. Intentando continuar...`;
+
+                if (erroresConsecutivos >= 3) {
+                    indiceActual++;
+                    erroresConsecutivos = 0;
+                }
+
+                if (indiceActual < colaFragmentos.length) {
+                    setTimeout(() => leerSiguiente(idActual, true), 180);
                 } else {
-                    textoALeer = textarea.value.substring(inicio);
+                    estadoLectura.textContent = 'Finalizó con algunos errores';
+                    leyendo = false;
+                    pausado = false;
+                    limpiarKeepAlive();
+                    actualizarUI();
                 }
+            };
+
+            try {
+                window.speechSynthesis.speak(utterance);
+            } catch (e) {
+                detalleTecnico.textContent = 'El navegador rechazó la reproducción. Reintentando...';
+                setTimeout(() => leerSiguiente(idActual, true), 250);
+            }
+        }
+
+        btnLeer.addEventListener('click', () => {
+            desbloquearAudio();
+            const textoALeer = obtenerTextoALeer(true);
+            try { window.speechSynthesis.cancel(); } catch (e) {}
+            if (!prepararLecturaDesdeTexto(textoALeer)) return;
+            setTimeout(() => leerSiguiente(reproduccionId), 120);
+        });
+
+        btnPausar.addEventListener('click', () => {
+            if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+                window.speechSynthesis.pause();
+                pausado = true;
+                leyendo = false;
+                estadoLectura.textContent = 'Pausada';
+                detalleTecnico.textContent = `Pausada en el fragmento ${indiceActual + 1}.`;
+                actualizarUI();
+            }
+        });
+
+        btnReanudar.addEventListener('click', () => {
+            desbloquearAudio();
+            if (window.speechSynthesis.paused) {
+                window.speechSynthesis.resume();
+                pausado = false;
+                leyendo = true;
+                estadoLectura.textContent = 'Reanudando...';
+                detalleTecnico.textContent = 'Reanudando la lectura actual.';
+                actualizarUI();
+                return;
+            }
+            if (colaFragmentos.length && indiceActual < colaFragmentos.length) {
+                reproduccionId++;
+                setTimeout(() => leerSiguiente(reproduccionId, true), 100);
+            }
+        });
+
+        btnDetener.addEventListener('click', () => detenerLectura());
+        btnGuardarPosicion.addEventListener('click', guardarPosicion);
+        btnLimpiarGuardado.addEventListener('click', borrarPosicionGuardada);
+
+        btnContinuarPosicion.addEventListener('click', () => {
+            desbloquearAudio();
+            const guardado = cargarPosicionGuardada();
+            if (!guardado || !guardado.texto) {
+                detalleTecnico.textContent = 'No hay ninguna posición guardada.';
+                return;
             }
 
-            if (textoALeer.trim() !== '') {
-                window.mensajeActual = new SpeechSynthesisUtterance(textoALeer);
-                
-                // FORZAR EL IDIOMA (Evita que el celular rechace el texto)
-                window.mensajeActual.lang = 'es-ES'; 
-
-                if (vocesDisponibles.length > 0) {
-                    const vozSeleccionada = vocesDisponibles.find(v => v.name === selectorVoces.value);
-                    if (vozSeleccionada) {
-                        window.mensajeActual.voice = vozSeleccionada;
-                        window.mensajeActual.lang = vozSeleccionada.lang; // Usa el idioma de la voz elegida
-                    }
-                }
-
-                window.mensajeActual.rate = parseFloat(inputVelocidad.value);
-                
-                // REPRODUCIR INMEDIATAMENTE
-                window.speechSynthesis.speak(window.mensajeActual);
-
-            } else {
-                alert("Por favor, escribe un texto.");
+            textarea.value = guardado.texto;
+            if (guardado.velocidad) inputVelocidad.value = guardado.velocidad;
+            if (guardado.tamanoFragmento) inputTamanoFragmento.value = guardado.tamanoFragmento;
+            valorVelocidad.textContent = inputVelocidad.value;
+            cargarVoces();
+            if (guardado.voz && Array.from(selectorVoces.options).some(o => o.value === guardado.voz)) {
+                selectorVoces.value = guardado.voz;
             }
+
+            try { window.speechSynthesis.cancel(); } catch (e) {}
+            if (!prepararLecturaDesdeTexto(guardado.texto, guardado.indiceActual || 0, { mensajeEstado: 'Retomando lectura guardada...' })) return;
+            detalleTecnico.textContent = `Retomando desde el fragmento ${(guardado.indiceActual || 0) + 1}. Guardado: ${guardado.fecha || 'sin fecha'}.`;
+            actualizarResumenTexto();
+            setTimeout(() => leerSiguiente(reproduccionId, true), 120);
         });
 
-        // BOTÓN PAUSAR
-        btnPausar.addEventListener('click', () => { 
-            window.speechSynthesis.pause(); 
-        });
-
-        // BOTÓN REANUDAR
-        btnReanudar.addEventListener('click', () => { 
-            window.speechSynthesis.resume(); 
-        });
-
-        // BOTÓN DETENER
-        btnDetener.addEventListener('click', () => { 
-            window.speechSynthesis.cancel(); 
-        });
-
+        actualizarResumenTexto();
+        actualizarUI();
     </script>
 </body>
 </html>
