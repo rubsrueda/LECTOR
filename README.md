@@ -12,7 +12,6 @@ Pequeña app para pegar un texto y leerlo en voz alta usando la API de síntesis
 ## Desarrollo local
 
 ```bash
-cd /home/runner/work/LECTOR/LECTOR
 npm start
 ```
 
